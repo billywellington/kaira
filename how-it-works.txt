@@ -1,0 +1,132 @@
+How Voice Dictation Tools (like Wispr Flow) Are Built From Scratch
+===================================================================
+
+PROBLEM
+Wispr Flow and similar tools sometimes drop words, miss dictation chunks, and don't feel reliable enough for daily use. Understanding the architecture helps identify where those failures happen and what a better tool would need.
+
+
+CORE ARCHITECTURE — 5 LAYERS
+=============================
+
+1. AUDIO CAPTURE LAYER
+-----------------------
+- Hooks into the OS microphone at the system level
+- Platform APIs:
+  - macOS: CoreAudio
+  - Windows: WASAPI or Windows.Media.Capture
+  - Linux: PulseAudio / PipeWire
+- Runs a background process/daemon that's always listening for a hotkey trigger
+- Voice Activity Detection (VAD) determines when you're speaking vs silent
+  - This is where "missing words" bugs typically live
+  - If VAD thinks you paused, it cuts the audio chunk early
+
+2. SPEECH-TO-TEXT (STT) ENGINE
+-------------------------------
+- Audio chunks get streamed to an ASR (Automatic Speech Recognition) model
+- Options:
+  - OpenAI Whisper (local or API) — most popular open-source option
+  - Deepgram — fast cloud API, good for real-time
+  - AssemblyAI — cloud API with good accuracy
+  - Google Speech-to-Text — mature but pricier
+  - Azure Speech Services — Microsoft's offering
+- Wispr likely uses a fine-tuned Whisper model, possibly partially on-device for speed
+- The model converts raw audio waveforms into text tokens in real-time
+- Two modes: batch (wait for silence, then transcribe) vs streaming (transcribe as you speak)
+
+3. TEXT PROCESSING / LLM LAYER
+-------------------------------
+- Raw transcription gets post-processed for punctuation, capitalisation, formatting
+- An LLM cleans up the output:
+  - Fixes grammar
+  - Handles voice commands ("new line", "period", "delete that")
+  - Context-aware formatting (emails vs code vs chat)
+- This is what makes "smart dictation" different from raw STT
+- Models used: GPT-4o-mini, Claude Haiku, or a local model like Phi-3 or Gemma
+
+4. SYSTEM-WIDE TEXT INJECTION
+------------------------------
+- The processed text gets typed into whatever app is currently focused
+- Platform APIs:
+  - macOS: CGEventCreateKeyboardEvent or Accessibility APIs
+  - Windows: SendInput API or UI Automation
+  - Linux: xdotool or ydotool (Wayland)
+- This is the HARDEST part — simulating keystrokes reliably across every app
+  - Browsers, editors, Slack, terminal, etc. all handle input differently
+  - Some apps have security restrictions on simulated input
+  - Rich text fields vs plain text fields behave differently
+
+5. HOTKEY / ACTIVATION SYSTEM
+-------------------------------
+- Global hotkey listener (runs even when app isn't focused)
+- Platform APIs:
+  - macOS: CGEventTap or NSEvent.addGlobalMonitorForEvents
+  - Windows: RegisterHotKey or low-level keyboard hooks
+  - Linux: XGrabKey or libinput
+- Modes: push-to-talk, toggle on/off, always-on with VAD
+
+
+WHY DICTATION TOOLS DROP WORDS
+==============================
+
+The issues typically come from one or more of these:
+
+1. VAD misfiring — thinks you stopped talking during a natural pause, cuts audio chunk early
+2. Streaming latency — if sending audio to a cloud API, network hiccups = missed chunks
+3. Audio buffer overflows — system under load, audio frames get dropped before reaching STT
+4. Hotkey state bugs — the "always listening" toggle loses state after sleep/wake or app switch
+5. Chunk boundary errors — word gets split across two audio chunks, neither chunk transcribes it correctly
+6. Noise gate too aggressive — quiet speech or trailing words get filtered out as noise
+
+
+TYPICAL TECH STACK
+==================
+
+| Layer              | Technology                                        |
+|--------------------|---------------------------------------------------|
+| App shell          | Electron, Tauri (cross-platform), or native Swift/C++ |
+| Audio capture      | PortAudio, CoreAudio, WASAPI                      |
+| VAD                | Silero VAD or WebRTC VAD                          |
+| STT                | Whisper, Deepgram, or custom model                |
+| LLM cleanup        | GPT-4o-mini, Claude Haiku, or local model         |
+| Text injection     | OS-level input simulation APIs                    |
+| Hotkey             | Global keyboard hooks                             |
+
+
+SIMPLEST MVP PATH (Python)
+===========================
+
+To build a working prototype:
+
+1. Python + sounddevice library for mic capture
+2. Silero VAD for voice activity detection
+3. OpenAI Whisper API for transcription (or local whisper.cpp for offline)
+4. Claude Haiku or GPT-4o-mini for text cleanup
+5. pynput library for typing the result into the active window
+
+This gives a functional prototype. The hard engineering is:
+- Making it feel instant (< 500ms latency end-to-end)
+- Working reliably across every app on the OS
+- Handling edge cases (accents, background noise, code dictation, multilingual)
+
+
+KEY OPEN-SOURCE PROJECTS TO STUDY
+===================================
+
+- whisper.cpp — C/C++ port of OpenAI Whisper, runs locally, fast
+- Silero VAD — lightweight voice activity detection model
+- faster-whisper — CTranslate2-based Whisper, 4x faster than original
+- vosk — offline speech recognition toolkit
+- nerd-dictation — Linux offline voice dictation using vosk
+- talon — advanced voice control system (speech + eye tracking)
+
+
+COMPETITIVE LANDSCAPE
+=====================
+
+- Wispr Flow — system-wide dictation with LLM cleanup (the one Billy tried)
+- macOS Dictation — built-in, decent but no LLM layer
+- Windows Voice Typing (Win+H) — built-in, basic
+- Dragon NaturallySpeaking — legacy leader, expensive, Windows only
+- Talon — power-user voice control, steep learning curve
+- Superwhisper — macOS, local Whisper-based
+- Google Gboard Voice — mobile only, very good accuracy

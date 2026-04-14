@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 50px 40px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  .state-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .frame {
+    width: 260px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111111;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .label {
+    color: rgba(255,255,255,0.3);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* === PILL BASE === */
+  .pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(13, 10, 8, 0.92);
+    border: 1.2px solid rgba(255, 149, 0, 0.22);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* === IDLE === */
+  .pill.idle {
+    width: 28px;
+    padding: 0;
+  }
+  .pill.idle .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(136, 136, 136, 0.7);
+  }
+
+  /* === HOVER === */
+  .pill.hover {
+    width: 90px;
+    padding: 0 10px;
+    border-color: rgba(255, 149, 0, 0.45);
+    justify-content: center;
+  }
+  .pill.hover .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ff9500;
+    flex-shrink: 0;
+  }
+  .pill.hover .hint {
+    font-size: 8pt;
+    color: rgba(230, 225, 220, 0.6);
+    font-weight: 500;
+  }
+
+  /* === RECORDING === */
+  .pill.recording {
+    width: 180px;
+    padding: 0 8px;
+    border-color: #ff9500;
+    box-shadow:
+      0 0 0 1px rgba(255, 149, 0, 0.15),
+      0 2px 16px rgba(0, 0, 0, 0.5),
+      0 0 24px rgba(255, 149, 0, 0.15);
+    justify-content: flex-start;
+  }
+  .rec-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ff4400;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(255, 68, 0, 0.2);
+    margin-right: 4px;
+  }
+  .waveform {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 18px;
+    flex: 1;
+  }
+  .bar {
+    width: 2px;
+    border-radius: 1px;
+    background: #ff9500;
+    min-height: 2px;
+  }
+
+  /* === TRANSCRIBING === */
+  .pill.transcribing {
+    width: 140px;
+    padding: 0 10px;
+    border-color: rgba(255, 149, 0, 0.4);
+    justify-content: center;
+  }
+  .spinner {
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid rgba(255, 149, 0, 0.3);
+    border-top-color: #ff9500;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status {
+    font-size: 8pt;
+    color: rgba(230, 225, 220, 0.6);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+  <div class="state-block">
+    <div class="frame">
+      <div class="pill idle">
+        <div class="dot"></div>
+      </div>
+    </div>
+    <div class="label">Idle</div>
+  </div>
+
+  <div class="state-block">
+    <div class="frame">
+      <div class="pill hover">
+        <div class="dot"></div>
+        <span class="hint">Ctrl+Win</span>
+      </div>
+    </div>
+    <div class="label">Hover</div>
+  </div>
+
+  <div class="state-block">
+    <div class="frame">
+      <div class="pill recording">
+        <div class="rec-dot"></div>
+        <div class="waveform" id="waveform"></div>
+      </div>
+    </div>
+    <div class="label">Recording</div>
+  </div>
+
+  <div class="state-block">
+    <div class="frame">
+      <div class="pill transcribing">
+        <div class="spinner"></div>
+        <span class="status">Transcribing...</span>
+      </div>
+    </div>
+    <div class="label">Transcribing</div>
+  </div>
+
+  <script>
+    const waveform = document.getElementById('waveform');
+    const heights = [
+      12, 35, 55, 30, 70, 85, 45, 95, 60, 40,
+      80, 50, 90, 35, 65, 75, 25, 55, 85, 45,
+      70, 38, 62, 88, 42, 58, 78, 32, 68, 52
+    ];
+    heights.forEach(h => {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = h + '%';
+      bar.style.opacity = 0.45 + (h / 180);
+      waveform.appendChild(bar);
+    });
+  </script>
+</body>
+</html>

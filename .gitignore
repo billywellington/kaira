@@ -1,0 +1,10 @@
+.env
+*.pyc
+__pycache__/
+.venv*/
+logs/
+*.lock
+*.wav
+dist/
+build/
+*.spec
