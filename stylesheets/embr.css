@@ -1,0 +1,85 @@
+/* Embr Voice — Warm Ember palette overrides for MkDocs Material */
+
+:root {
+  --md-primary-fg-color:        #ff9500;
+  --md-primary-fg-color--light: #ffa520;
+  --md-primary-fg-color--dark:  #cc7700;
+  --md-accent-fg-color:         #ff9500;
+  --md-accent-fg-color--transparent: rgba(255, 149, 0, 0.1);
+
+  --md-default-fg-color:        #171717;
+  --md-default-fg-color--light: #525252;
+  --md-default-fg-color--lighter: #737373;
+  --md-default-bg-color:        #ffffff;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #ff9500;
+  --md-primary-fg-color--light: #ffa520;
+  --md-primary-fg-color--dark:  #cc7700;
+  --md-accent-fg-color:         #ffa520;
+  --md-default-bg-color:        #0d0a08;
+  --md-code-bg-color:           #1a1510;
+  --md-typeset-a-color:         #ffa520;
+}
+
+/* Tightened headline tracking to match the Embr Voice onboarding */
+.md-typeset h1 {
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+.md-typeset h2 {
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+.md-typeset h3 {
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+/* Code blocks — a touch warmer */
+.md-typeset code {
+  background: #fff5e6;
+  color: #cc7700;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.88em;
+}
+[data-md-color-scheme="slate"] .md-typeset code {
+  background: #1a1510;
+  color: #ffa520;
+}
+
+/* Header logo sizing */
+.md-header__button.md-logo img {
+  height: 22px;
+}
+
+/* Tables — slimmer, more confident */
+.md-typeset table:not([class]) {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: none;
+}
+.md-typeset table:not([class]) th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+/* Admonitions — warm for tips, neutral for notes */
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: #ff9500;
+}
+.md-typeset .tip > .admonition-title,
+.md-typeset .tip > summary {
+  background-color: #fff5e6;
+}
+.md-typeset .tip > .admonition-title::before,
+.md-typeset .tip > summary::before {
+  background-color: #ff9500;
+}
+
+/* Footer */
+.md-footer-meta {
+  background: #0d0a08;
+}
